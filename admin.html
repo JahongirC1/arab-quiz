@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Arab yarimoroli mamlakatlari</title>
+<link rel="stylesheet" href="/uslub.css">
+</head>
+<body>
+
+<header>
+  <div class="hwrap">
+    <div class="uni">Oʻzbekiston davlat jahon tillari universiteti · Mamlakatshunoslik fani</div>
+    <h1>ADMIN PANEL</h1>
+    <nav><button class="active">⚙️ Quiz boshqaruvi</button></nav>
+  </div>
+</header>
+
+<main>
+
+<!-- SOZLAMALAR -->
+<section class="page on" id="aSetup">
+  <h2>Yangi test yaratish</h2>
+  <p class="sub">Sozlamalarni tanlab, xona oching</p>
+
+  <div class="card">
+    <label>Admin paroli</label>
+    <input id="aParol" type="password" placeholder="Parolni kiriting">
+
+    <div class="row" style="margin-top:16px">
+      <div>
+        <label>Boʻlim</label>
+        <select id="aMavzu"></select>
+      </div>
+      <div>
+        <label>Savollar soni</label>
+        <select id="aSoni">
+          <option>5</option><option selected>10</option>
+          <option>15</option><option>20</option><option>30</option>
+        </select>
+      </div>
+      <div>
+        <label>Har savolga vaqt</label>
+        <select id="aVaqt">
+          <option value="10">10 soniya</option>
+          <option value="15">15 soniya</option>
+          <option value="20" selected>20 soniya</option>
+          <option value="30">30 soniya</option>
+          <option value="45">45 soniya</option>
+          <option value="60">60 soniya</option>
+        </select>
+      </div>
+      <div>
+        <label>Tartib</label>
+        <select id="aAralash">
+          <option value="1" selected>Aralash</option>
+          <option value="0">Ketma-ket</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="btn" style="margin-top:18px" id="aOch">🔑 Xona ochish</button>
+    <div class="fb" id="aXato"></div>
+    <div class="note">Ball tizimi: har toʻgʻri javob uchun <b>200–1000 ball</b> — qanchalik tez javob berilsa, shuncha koʻp ball.</div>
+  </div>
+</section>
+
+<!-- XONA -->
+<section class="page" id="aXona">
+  <div class="kodbox">
+    <div class="mini" style="color:#DED5C8">Xona kodi</div>
+    <div class="kod" id="aKod">------</div>
+    <div class="mini" style="color:#DED5C8" id="aLink"></div>
+  </div>
+
+  <div class="card">
+    <div class="row">
+      <div><span class="badge" id="aMavzuNom"></span><span class="badge" id="aJami"></span></div>
+    </div>
+    <h3 style="margin-top:14px">Ishtirokchilar (<span id="aCnt">0</span>)</h3>
+    <div class="plist" id="aRoyxat"><span class="mini">Hali hech kim qoʻshilmagan</span></div>
+    <div style="margin-top:18px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn" id="aBoshla">▶ Testni boshlash</button>
+      <button class="btn gray" id="aToxtat">■ Toʻxtatish</button>
+      <button class="btn gray" id="aYangi">↺ Yangi xona</button>
+    </div>
+  </div>
+
+  <div class="card hide" id="aJonli">
+    <h3><span class="dot"></span> Test ketmoqda</h3>
+    <p class="mini" id="aQIdx" style="margin-top:6px"></p>
+    <div class="qtext" id="aQ" style="margin-top:12px"></div>
+    <div id="aOpts"></div>
+    <div style="margin-top:16px" id="aJadval"></div>
+  </div>
+
+  <div class="card hide" id="aNatija">
+    <h3 style="margin-bottom:4px">🏆 Yakuniy natijalar</h3>
+    <div class="podium" id="aPodium"></div>
+    <table id="aTable"></table>
+  </div>
+</section>
+
+</main>
+
+<script src="/umumiy.js"></script>
+<script>
+let KOD = null, TOKEN = null, oqim = null;
+
+fetch('/api/mavzular').then(r => r.json()).then(d => {
+  const s = $('aMavzu');
+  const u = document.createElement('option');
+  u.value = 'umumiy'; u.textContent = 'Umumiy test — barcha boʻlimlar';
+  s.appendChild(u);
+  d.topics.forEach(t => {
+    const o = document.createElement('option');
+    o.value = t.id;
+    o.textContent = t.name + (t.ready ? ` (${t.savolSoni} savol)` : ' — savol yoʻq');
+    if (!t.ready) o.disabled = true;
+    s.appendChild(o);
+  });
+});
+
+$('aOch').onclick = () => {
+  post('/api/xona', {
+    parol: $('aParol').value,
+    mavzu: $('aMavzu').value,
+    soni: +$('aSoni').value,
+    vaqt: +$('aVaqt').value,
+    aralash: $('aAralash').value === '1'
+  }).then(d => {
+    if (d.xato) { $('aXato').className = 'fb no'; $('aXato').textContent = d.xato; return; }
+    KOD = d.kod; TOKEN = d.token;
+    sessionStorage.setItem('a_kod', KOD);
+    sessionStorage.setItem('a_token', TOKEN);
+    $('aSetup').classList.remove('on');
+    $('aXona').classList.add('on');
+    $('aKod').textContent = KOD;
+    $('aLink').textContent = location.origin + ' → Jonli quiz';
+    $('aMavzuNom').textContent = d.mavzu;
+    $('aJami').textContent = d.jami + ' ta savol';
+    ulan();
+  });
+};
+
+function ulan() {
+  oqim = new EventSource('/api/oqim?kod=' + KOD);
+
+  oqim.addEventListener('royxat', e => {
+    const d = JSON.parse(e.data);
+    $('aCnt').textContent = d.players.length;
+    $('aRoyxat').innerHTML = d.players.length
+      ? d.players.map(n => `<span class="chip">${esc(n)}</span>`).join('')
+      : '<span class="mini">Hali hech kim qoʻshilmagan</span>';
+  });
+
+  oqim.addEventListener('boshlandi', () => {
+    $('aJonli').classList.remove('hide');
+    $('aNatija').classList.add('hide');
+  });
+
+  oqim.addEventListener('savol', e => {
+    const d = JSON.parse(e.data);
+    $('aQIdx').textContent = `Savol ${d.idx + 1} / ${d.jami} · ${d.vaqt} soniya${d.mavzu ? ' · ' + d.mavzu : ''}`;
+    $('aQ').textContent = d.q;
+    $('aOpts').innerHTML = d.o.map((t, i) =>
+      `<div class="opt dis"><span class="k">${'ABCD'[i]}</span><span>${esc(t)}</span></div>`).join('');
+  });
+
+  oqim.addEventListener('javob', e => {
+    const d = JSON.parse(e.data);
+    document.querySelectorAll('#aOpts .opt').forEach((el, k) => {
+      if (k === d.a) el.classList.add('correct');
+    });
+    $('aJadval').innerHTML = '<div class="mini" style="margin-bottom:6px">Yetakchilar</div>' +
+      d.jadval.map((p, i) => `<div class="lrow"><b>${i + 1}.</b> ${esc(p.name)} <span>${p.score}</span></div>`).join('');
+  });
+
+  oqim.addEventListener('tugadi', e => {
+    const d = JSON.parse(e.data);
+    $('aJonli').classList.add('hide');
+    $('aNatija').classList.remove('hide');
+    podium($('aPodium'), d.jadval);
+    jadvalChiz($('aTable'), d.jadval);
+  });
+}
+
+function amal(a) {
+  return post('/api/boshqar', { kod: KOD, token: TOKEN, amal: a });
+}
+$('aBoshla').onclick = () => amal('boshla');
+$('aToxtat').onclick = () => { if (confirm('Testni toʻxtatasizmi?')) amal('toxtat'); };
+$('aYangi').onclick = () => {
+  if (!confirm('Yangi xona ochasizmi? Hozirgi xona oʻchiriladi.')) return;
+  amal('ochir').then(() => location.reload());
+};
+</script>
+</body>
+</html>

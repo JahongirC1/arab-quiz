@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Arab yarimoroli mamlakatlari</title>
+<link rel="stylesheet" href="/uslub.css">
+</head>
+<body>
+
+<header>
+  <div class="hwrap">
+    <div class="uni">Oʻzbekiston davlat jahon tillari universiteti · Mamlakatshunoslik fani</div>
+    <h1>ARAB YARIMOROLI MAMLAKATLARI</h1>
+    <nav>
+      <button class="active" data-p="darslar">📖 Darslar</button>
+      <button data-p="mashq">✏️ Mashq testi</button>
+      <button data-p="jonli">🎮 Jonli quiz</button>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ DARSLAR ============ -->
+<section id="darslar" class="page on">
+  <div id="mavzuRoyxat">
+    <h2>Boʻlimlar</h2>
+    <p class="sub">Oʻrganmoqchi boʻlgan davlatni tanlang</p>
+    <div class="grid g2" id="kartalar"></div>
+  </div>
+
+  <div id="mavzuMatn" class="hide">
+    <button class="btn gray" id="orqaga" style="margin-bottom:18px">← Boʻlimlarga qaytish</button>
+    <h2 id="mNom"></h2>
+    <p class="sub" id="mTag"></p>
+    <div class="grid g4" id="mStat" style="margin-bottom:18px"></div>
+    <div id="mSec"></div>
+    <div class="card hide" id="mTlBox">
+      <h3>Tarixiy bosqichlar</h3>
+      <div class="tl" id="mTl"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ MASHQ ============ -->
+<section id="mashq" class="page">
+  <h2>Mashq testi</h2>
+  <p class="sub">Vaqt cheklovisiz — javobdan keyin darhol izoh olasiz</p>
+
+  <div class="card" id="msTanla">
+    <label>Qaysi boʻlim boʻyicha mashq qilasiz?</label>
+    <select id="msMavzu"></select>
+    <button class="btn" style="margin-top:14px" id="msBosh">Boshlash</button>
+  </div>
+
+  <div class="card hide" id="msTest">
+    <div class="prog"><i id="msProg" style="width:0%"></i></div>
+    <div class="mini" id="msCnt"></div>
+    <div class="qtext" id="msQ"></div>
+    <div id="msOpts"></div>
+    <div class="fb" id="msFb"></div>
+    <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn hide" id="msNext">Keyingi →</button>
+      <button class="btn gray" id="msStop">Toʻxtatish</button>
+    </div>
+  </div>
+
+  <div class="card center hide" id="msDone">
+    <h3>Mashq yakunlandi</h3>
+    <div class="big" id="msScore"></div>
+    <p id="msMsg" style="margin-top:8px"></p>
+    <button class="btn" style="margin-top:16px" id="msAgain">Yana bir bor</button>
+  </div>
+</section>
+
+<!-- ============ JONLI QUIZ ============ -->
+<section id="jonli" class="page">
+  <h2>Jonli quiz</h2>
+  <p class="sub">Oʻqituvchi bergan kodni kiriting</p>
+
+  <div class="card" id="jKir">
+    <label>Xona kodi (6 ta raqam)</label>
+    <input id="jKod" inputmode="numeric" maxlength="6" placeholder="000000" style="font-size:1.5rem;letter-spacing:6px;text-align:center;font-weight:700">
+    <label style="margin-top:14px">Ism va familiyangiz</label>
+    <input id="jIsm" placeholder="Masalan: Ali Valiyev" maxlength="28">
+    <button class="btn" style="margin-top:16px;width:100%" id="jBtn">Xonaga kirish</button>
+    <div class="fb" id="jXato"></div>
+  </div>
+
+  <div class="card hide center" id="jKut">
+    <p><span class="dot"></span> Xonaga kirdingiz</p>
+    <h3 id="jSalom" style="margin:10px 0"></h3>
+    <p class="mini" id="jInfo"></p>
+    <p style="color:var(--ink);margin-top:12px">Oʻqituvchi testni boshlashini kuting…</p>
+    <div class="plist" id="jRoyxat" style="justify-content:center"></div>
+  </div>
+
+  <div class="card hide center" id="jSanoq">
+    <h3>Tayyorlaning!</h3>
+    <div class="big" id="jSanoqRaqam">3</div>
+  </div>
+
+  <div class="card hide" id="jTest">
+    <div class="row" style="margin-bottom:12px">
+      <div><span class="badge" id="jNum"></span><span class="badge" id="jBall"></span></div>
+      <div style="max-width:110px"><div class="timer" id="jVaqt">--</div></div>
+    </div>
+    <div class="prog"><i id="jProg" style="width:0%"></i></div>
+    <div class="mini" id="jMavzu"></div>
+    <div class="qtext" id="jQ"></div>
+    <div id="jOpts"></div>
+    <div class="fb" id="jFb"></div>
+    <div class="hide" id="jTop5" style="margin-top:16px"></div>
+  </div>
+
+  <div class="card hide center" id="jTugadi">
+    <h3>Test yakunlandi 🎉</h3>
+    <div class="big" id="jYakun"></div>
+    <p id="jOrin" style="margin-top:8px;font-weight:700"></p>
+    <div class="podium" id="jPodium"></div>
+    <table id="jJadval" style="margin-top:10px"></table>
+  </div>
+</section>
+
+</main>
+
+<script src="/umumiy.js"></script>
+<script>
+let MAVZULAR = [];
+
+/* ---------- DARSLAR ---------- */
+fetch('/api/mavzular').then(r => r.json()).then(d => {
+  MAVZULAR = d.topics;
+  const box = $('kartalar');
+  MAVZULAR.forEach(t => {
+    const c = document.createElement('div');
+    c.className = 'card mavzu' + (t.ready ? '' : ' soon');
+    c.innerHTML = `<div class="icon">${t.icon}</div>
+      <h3>${t.name}</h3>
+      <p>${t.tagline}</p>
+      <div class="mini" style="margin-top:10px">${t.ready ? t.savolSoni + ' ta test savoli' : 'Tez orada'}</div>`;
+    if (t.ready) c.onclick = () => mavzuOch(t);
+    box.appendChild(c);
+  });
+
+  // mashq bo'limi ro'yxati
+  const s = $('msMavzu');
+  const u = document.createElement('option');
+  u.value = 'umumiy'; u.textContent = 'Umumiy — barcha boʻlimlar';
+  s.appendChild(u);
+  MAVZULAR.filter(t => t.ready).forEach(t => {
+    const o = document.createElement('option');
+    o.value = t.id; o.textContent = t.name;
+    s.appendChild(o);
+  });
+});
+
+function mavzuOch(t) {
+  $('mavzuRoyxat').classList.add('hide');
+  $('mavzuMatn').classList.remove('hide');
+  $('mNom').textContent = t.name;
+  $('mTag').textContent = t.tagline;
+
+  $('mStat').innerHTML = t.stats.map(s =>
+    `<div class="stat"><b>${s[0]}</b><span>${s[1]}</span></div>`).join('');
+
+  $('mSec').innerHTML = t.sections.map(s =>
+    `<div class="card"><h3>${s.h}</h3><p>${s.p}</p></div>`).join('');
+
+  if (t.timeline.length) {
+    $('mTlBox').classList.remove('hide');
+    $('mTl').innerHTML = t.timeline.map(x =>
+      `<div class="item"><b>${x[0]}</b><br>${x[1]}</div>`).join('');
+  } else $('mTlBox').classList.add('hide');
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+$('orqaga').onclick = () => {
+  $('mavzuMatn').classList.add('hide');
+  $('mavzuRoyxat').classList.remove('hide');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+/* ---------- MASHQ TESTI ---------- */
+let msQs = [], msI = 0, msC = 0;
+
+$('msBosh').onclick = () => {
+  fetch('/api/mashq?mavzu=' + $('msMavzu').value).then(r => r.json()).then(d => {
+    msQs = d.qs; msI = 0; msC = 0;
+    $('msTanla').classList.add('hide');
+    $('msDone').classList.add('hide');
+    $('msTest').classList.remove('hide');
+    msKor();
+  });
+};
+function msKor() {
+  const q = msQs[msI];
+  $('msProg').style.width = (msI / msQs.length * 100) + '%';
+  $('msCnt').textContent = `Savol ${msI + 1} / ${msQs.length}`;
+  $('msQ').textContent = q.q;
+  $('msFb').className = 'fb';
+  $('msNext').classList.add('hide');
+  const b = $('msOpts'); b.innerHTML = '';
+  q.o.forEach((t, i) => {
+    const d = document.createElement('div');
+    d.className = 'opt';
+    d.innerHTML = `<span class="k">${'ABCD'[i]}</span><span>${t}</span>`;
+    d.onclick = () => msJavob(i, d);
+    b.appendChild(d);
+  });
+}
+function msJavob(i, el) {
+  const q = msQs[msI];
+  document.querySelectorAll('#msOpts .opt').forEach((d, k) => {
+    d.classList.add('dis');
+    if (k === q.a) d.classList.add('correct');
+  });
+  if (i === q.a) { msC++; $('msFb').className = 'fb ok'; $('msFb').textContent = '✓ Toʻgʻri! ' + q.e; }
+  else { el.classList.add('wrong'); $('msFb').className = 'fb no'; $('msFb').textContent = '✗ Notoʻgʻri. ' + q.e; }
+  $('msNext').classList.remove('hide');
+  $('msNext').textContent = msI < msQs.length - 1 ? 'Keyingi →' : 'Natijani koʻrish';
+}
+$('msNext').onclick = () => {
+  if (msI < msQs.length - 1) { msI++; msKor(); }
+  else {
+    $('msTest').classList.add('hide');
+    $('msDone').classList.remove('hide');
+    $('msScore').textContent = msC + ' / ' + msQs.length;
+    const r = msC / msQs.length;
+    $('msMsg').textContent = r === 1 ? 'Ajoyib! Mavzuni mukammal oʻzlashtirgansiz.'
+      : r >= 0.7 ? 'Yaxshi natija! Yana bir bor takrorlang.'
+      : 'Darsni qayta oʻqib chiqing va urinib koʻring.';
+  }
+};
+$('msStop').onclick = $('msAgain').onclick = () => {
+  $('msTest').classList.add('hide');
+  $('msDone').classList.add('hide');
+  $('msTanla').classList.remove('hide');
+};
+
+/* ---------- JONLI QUIZ ---------- */
+let KOD = null, PID = null, oqim = null, jI = 0, jBall = 0, jTogri = 0, jJami = 0;
+let jTimer = null, jQulf = false;
+
+$('jKod').oninput = e => e.target.value = e.target.value.replace(/\D/g, '');
+
+$('jBtn').onclick = () => {
+  const kod = $('jKod').value.trim(), ism = $('jIsm').value.trim();
+  if (kod.length !== 6) return xato('Kod 6 ta raqamdan iborat boʻlishi kerak');
+  if (!ism) return xato('Ismingizni kiriting');
+
+  post('/api/kir', { kod, ism }).then(d => {
+    if (d.xato) return xato(d.xato);
+    KOD = kod; PID = d.pid; jJami = d.jami;
+    $('jKir').classList.add('hide');
+    $('jKut').classList.remove('hide');
+    $('jSalom').textContent = ism;
+    $('jInfo').textContent = `${d.mavzu} · ${d.jami} ta savol`;
+    ulan();
+  });
+};
+function xato(m) { $('jXato').className = 'fb no'; $('jXato').textContent = m; }
+
+function ulan() {
+  oqim = new EventSource('/api/oqim?kod=' + KOD);
+
+  oqim.addEventListener('royxat', e => {
+    const d = JSON.parse(e.data);
+    $('jRoyxat').innerHTML = d.players.map(n => `<span class="chip">${esc(n)}</span>`).join('');
+  });
+
+  oqim.addEventListener('boshlandi', () => {
+    $('jKut').classList.add('hide');
+    $('jSanoq').classList.remove('hide');
+    let n = 3;
+    $('jSanoqRaqam').textContent = n;
+    const t = setInterval(() => {
+      n--;
+      if (n > 0) $('jSanoqRaqam').textContent = n;
+      else { clearInterval(t); $('jSanoq').classList.add('hide'); }
+    }, 800);
+  });
+
+  oqim.addEventListener('savol', e => {
+    const d = JSON.parse(e.data);
+    $('jSanoq').classList.add('hide');
+    $('jTest').classList.remove('hide');
+    $('jTop5').classList.add('hide');
+    jI = d.idx; jQulf = false;
+
+    $('jNum').textContent = `Savol ${d.idx + 1}/${d.jami}`;
+    $('jBall').textContent = `Ball: ${jBall}`;
+    $('jProg').style.width = (d.idx / d.jami * 100) + '%';
+    $('jMavzu').textContent = d.mavzu || '';
+    $('jQ').textContent = d.q;
+    $('jFb').className = 'fb';
+
+    const b = $('jOpts'); b.innerHTML = '';
+    d.o.forEach((t, i) => {
+      const el = document.createElement('div');
+      el.className = 'opt';
+      el.innerHTML = `<span class="k">${'ABCD'[i]}</span><span>${esc(t)}</span>`;
+      el.onclick = () => jJavob(i, el);
+      b.appendChild(el);
+    });
+
+    let qoldi = d.vaqt;
+    $('jVaqt').textContent = qoldi;
+    $('jVaqt').className = 'timer';
+    clearInterval(jTimer);
+    jTimer = setInterval(() => {
+      qoldi--;
+      $('jVaqt').textContent = Math.max(qoldi, 0);
+      if (qoldi <= 5) $('jVaqt').className = 'timer warn';
+      if (qoldi <= 0) { clearInterval(jTimer); jQulf = true; qulfla(); }
+    }, 1000);
+  });
+
+  oqim.addEventListener('javob', e => {
+    const d = JSON.parse(e.data);
+    clearInterval(jTimer);
+    jQulf = true;
+    document.querySelectorAll('#jOpts .opt').forEach((el, k) => {
+      el.classList.add('dis');
+      if (k === d.a) el.classList.add('correct');
+    });
+    if (!$('jFb').textContent) { $('jFb').className = 'fb no'; $('jFb').textContent = '⏱ Vaqt tugadi. ' + d.e; }
+    $('jTop5').classList.remove('hide');
+    $('jTop5').innerHTML = '<div class="mini" style="margin-bottom:6px">Yetakchilar</div>' +
+      d.jadval.map((p, i) => `<div class="lrow"><b>${i + 1}.</b> ${esc(p.name)} <span>${p.score}</span></div>`).join('');
+  });
+
+  oqim.addEventListener('tugadi', e => {
+    const d = JSON.parse(e.data);
+    clearInterval(jTimer);
+    oqim.close();
+    $('jTest').classList.add('hide');
+    $('jTugadi').classList.remove('hide');
+    $('jYakun').textContent = jBall + ' ball';
+    const ism = $('jIsm').value.trim();
+    const orin = d.jadval.findIndex(p => p.name === ism) + 1;
+    $('jOrin').textContent = `Toʻgʻri javoblar: ${jTogri}/${jJami} · Oʻrningiz: ${orin || '-'}`;
+    podium($('jPodium'), d.jadval);
+    jadvalChiz($('jJadval'), d.jadval);
+  });
+}
+
+function qulfla() { document.querySelectorAll('#jOpts .opt').forEach(el => el.classList.add('dis')); }
+
+function jJavob(i, el) {
+  if (jQulf) return;
+  jQulf = true;
+  qulfla();
+  el.style.borderColor = 'var(--terra)';
+  post('/api/javob', { kod: KOD, pid: PID, idx: jI, tanlov: i }).then(d => {
+    if (d.xato) return;
+    if (d.togri) {
+      jBall = d.jami; jTogri++;
+      $('jFb').className = 'fb ok';
+      $('jFb').textContent = `✓ Toʻgʻri! +${d.ball} ball`;
+    } else {
+      el.classList.add('wrong');
+      $('jFb').className = 'fb no';
+      $('jFb').textContent = '✗ Notoʻgʻri javob';
+    }
+    $('jBall').textContent = `Ball: ${jBall}`;
+  });
+}
+</script>
+</body>
+</html>
